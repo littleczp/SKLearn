@@ -14,11 +14,11 @@ step|purpose|how
     <body>
         <table class="table1">
             <tr>A</tr>
-	        <tr>B</tr>
-        <table/>
+            <tr>B</tr>
+        </table>
         <table class="table2">
             <tr>M</tr>
-	        <tr>N</tr>
+            <tr>N</tr>
         </table>
     </body>
 </html>
