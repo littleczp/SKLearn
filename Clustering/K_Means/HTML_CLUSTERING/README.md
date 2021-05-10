@@ -1,7 +1,7 @@
 # html clustering
 > by Lloyd’s algorithm & Mini Batch K-Means
 
-step|what|how
+step|purpose|how
 ---|---|---
 1|Chooses the initial centroids, choose k|(1)**Random choice** with Cross-Validation(unrealized)<br>(2)K-Means++ 
 2|Turn k templates to feature vectors|(1)Each vector entry is the count of a given tag and class attribute<br>(2)The dimension of the vectors will change as new pages with new tags or class attributes arrive.
@@ -39,7 +39,7 @@ For example imagine that this new page arrives:
 ```html
 <html>
     <body>
-        <a>Another page</img>
+        <a>Another page</a>
     </body>
 </html>
 ```
