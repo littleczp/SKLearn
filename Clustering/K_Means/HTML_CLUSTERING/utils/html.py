@@ -1,17 +1,27 @@
 import re
+from collections import OrderedDict
 from copy import deepcopy
 from enum import Enum
 
-from Clustering.K_Means.HTML_CLUSTERING.utils.parser import CommentParser, ScriptParser
+_ATTR = "((?:[^=/<>\s]|/(?!>))+)(?:\s*=(?:\s*\"(.*?)\"|\s*'(.*?)'|([^>\s]+))?)?"
+_TAG = "<(\/?)(\w+(?::\w+)?)((?:\s*" + _ATTR + ")+\s*|\s*)(\/?)>?"
+_DOCTYPE = r"<!DOCTYPE.*?>"
+_SCRIPT = "(<script.*?>)(.*?)(</script.*?>)"
+_COMMENT = "(<!--.*?--!?>|<\?.+?>|<!>)"
+
+_ATTR_REGEXP = re.compile(_ATTR, re.I | re.DOTALL)
+_HTML_REGEXP = re.compile("%s|%s|%s" % (_COMMENT, _SCRIPT, _TAG), re.I | re.DOTALL)
+_DOCTYPE_REGEXP = re.compile("(?:%s)" % _DOCTYPE)
+_COMMENT_REGEXP = re.compile(_COMMENT, re.DOTALL)
 
 
-class Tag(Enum):
+class TagType(Enum):
     OPEN = 1
     CLOSE = 2
     UNPAIRED = 3
 
 
-class HTMLOffset:
+class HtmlDataFragment:
     __slots__ = ('start', 'end', 'is_text_content')
 
     def __init__(self, start, end, is_text_content=False):
@@ -19,11 +29,8 @@ class HTMLOffset:
         self.end = end
         self.is_text_content = is_text_content
 
-    def __repr__(self):
-        return str(self)
 
-
-class HtmlTag(HTMLOffset):
+class HtmlTag(HtmlDataFragment):
     __slots__ = ('tag_type', 'tag', '_attributes', '_attr_text')
     _ATTR_REGEXP = re.compile(
         "((?:[^=/<>\s]|/(?!>))+)(?:\s*=(?:\s*\"(.*?)\"|\s*'(.*?)'|([^>\s]+))?)?",
@@ -38,7 +45,7 @@ class HtmlTag(HTMLOffset):
             self._attributes = attr_text
             self._attr_text = None
         else:
-            self._attributes = {}
+            self._attributes = OrderedDict()
             self._attr_text = attr_text
 
     @property
@@ -47,141 +54,15 @@ class HtmlTag(HTMLOffset):
             for attr_match in self._ATTR_REGEXP.findall(self._attr_text):
                 name = attr_match[0].lower()
                 values = [v for v in attr_match[1:] if v]
-                # According to HTML spec if attribute name is repeated only the
-                # first one is taken into account
                 if name not in self._attributes:
                     self._attributes[name] = values[0] if values else None
         return self._attributes
 
 
-class HTMLDataFrame:
-    def __init__(self, body):
-        self.body = body
-        self.comment_parser = CommentParser()
-        self.script_parser = ScriptParser()
-
-    def parse(self):
-        parsed_result = []
-
-        tag_start = -1
-        tag_end = -1
-        script = False
-        open_tag = False
-        quote_single = False
-        quote_double = False
-
-        reset_tag = True
-        slash = False
-        has_attributes = False
-        yield_tag = False
-
-        tag_name = ""
-        tag_attributes = ""
-
-        prev_char = ""
-        i = 0
-
-        for char in self.body:
-            if reset_tag:
-                reset_tag = False
-                slash = False
-                has_attributes = False
-                tag_name = ""
-                tag_attributes = ""
-                yield_tag = False
-
-            if open_tag or script:
-                if char == '"' and not quote_single:
-                    quote_double = not quote_double
-                if char == "'" and not quote_double:
-                    quote_single = not quote_single
-            else:
-                quote_single = quote_double = False
-            quoted = quote_double or quote_single
-
-            if not quoted:
-                if self.comment_parser.parse(char, i):
-                    if (tag_end + 1) < self.comment_parser.start:
-                        parsed_result.append(HTMLOffset(tag_end + 1, self.comment_parser.start, not script))
-                    tag_end = self.comment_parser.end
-                    parsed_result.append(HTMLOffset(self.comment_parser.start, tag_end + 1, False))
-                    reset_tag = True
-                    if (self.comment_parser.end - self.comment_parser.start) == 2:
-                        open_tag = False
-
-                if self.comment_parser.inside_comment:
-                    open_tag = False
-                else:
-                    if script:
-                        open_tag = False
-                        if self.script_parser.parse(char, i):
-                            script = False
-                            if (tag_end + 1) < self.script_parser.start:
-                                parsed_result.append(HTMLOffset(tag_end + 1, self.script_parser.start, False))
-                            tag_end = self.script_parser.end
-                            parsed_result.append(HtmlTag(Tag.CLOSE, "script", "", self.script_parser.start, tag_end + 1))
-                    elif open_tag:
-                        if quoted:
-                            if has_attributes:
-                                tag_attributes += char
-                        elif char == "<":
-                            tag_end = i - 1
-                            yield_tag = True
-                        elif char == ">":
-                            if prev_char == "/":
-                                slash = True
-                            tag_end = i
-                            yield_tag = True
-                            open_tag = False
-                        elif char == "/":
-                            if prev_char == "<":
-                                slash = True
-                        elif char.isspace():
-                            if has_attributes:
-                                if prev_char == "/":
-                                    tag_attributes += "/"
-                                tag_attributes += char
-                            elif tag_name:
-                                has_attributes = True
-                        else:
-                            if has_attributes:
-                                tag_attributes += char
-                            else:
-                                tag_name += char.lower()
-                        if yield_tag:
-                            if not slash:
-                                tag_type = Tag.OPEN
-                            elif prev_char != "/":
-                                tag_type = Tag.CLOSE
-                            else:
-                                tag_type = Tag.UNPAIRED
-                            if tag_name != "!doctype":
-                                parsed_result.append(HtmlTag(tag_type, tag_name, tag_attributes, tag_start, tag_end + 1))
-                            if tag_name == "script":
-                                script = True
-                            if open_tag:
-                                tag_start = i
-                            reset_tag = True
-                    else:
-                        open_tag = False
-                        if char == "<" and not quoted:
-                            open_tag = True
-                            tag_start = i
-                            if tag_start > tag_end + 1:
-                                parsed_result.append(HTMLOffset(tag_end + 1, tag_start, True))
-                            tag_end = tag_start
-                prev_char = char
-                i += 1
-
-        if tag_end + 1 < len(self.body):
-            parsed_result.append(HTMLOffset(tag_end + 1, len(self.body), True))
-        return parsed_result
-
-
 class HtmlPage:
     def __init__(self, body, headers=None):
         self.body = body
-        self.parsed_body = list(HTMLDataFrame(body).parse())
+        self.parsed_body = list(parse(body))
         self.headers = headers or {}
 
     def subregion(self, start=0, end=None):
@@ -195,12 +76,40 @@ class HtmlPage:
         return self.body[dataframe.start:dataframe.end]
 
 
+class TextPage(HtmlPage):
+    """An HtmlPage with one unique HtmlDataFragment, needed to have a
+    convenient text with same interface as html page but avoiding unnecesary
+    reparsing"""
+    def __init__(self, body, headers=None):
+        super().__init__(body, headers)
+        self.parsed_body = [HtmlDataFragment(0, len(self.body), True)]
+
+
+class HtmlPageRegion:
+    """A Region of an HtmlPage that has been extracted"""
+
+    def __new__(cls, htmlpage, data):
+        return str(data)
+
+    def __init__(self, htmlpage, _):
+        """
+        Construct a new HtmlPageRegion object.
+        htmlpage is the original page and data is the raw html
+        """
+        self.htmlpage = htmlpage
+
+    @property
+    def text_content(self):
+        return self
+
+
 class HtmlPageParsedRegion:
     """A region of an HtmlPage that has been extracted
 
     This has a parsed_fragments property that contains the parsed html
     fragments contained within this region
     """
+
     def __new__(cls, htmlpage, start_index, end_index):
         text = htmlpage.body
         if text:
@@ -223,17 +132,84 @@ class HtmlPageParsedRegion:
         page = deepcopy(self.htmlpage)
         return self.__copy__(page)
 
-
-class HtmlPageRegion:
-    """A Region of an HtmlPage that has been extracted
-    """
-    def __init__(self, htmlpage, _):
-        """Construct a new HtmlPageRegion object.
-
-        htmlpage is the original page and data is the raw html
-        """
-        self.htmlpage = htmlpage
+    @property
+    def parsed_fragments(self):
+        """HtmlDataFragment or HtmlTag objects for this parsed region"""
+        end = self.end_index + 1 if self.end_index is not None else None
+        return self.htmlpage.parsed_body[self.start_index:end]
 
     @property
     def text_content(self):
-        return self
+        """Text content of this parsed region"""
+        return TextPage(self.htmlpage.url, self.htmlpage.headers).subregion()
+
+
+def parse(text):
+    start_pos = 0
+    match = _DOCTYPE_REGEXP.match(text)
+    if match:
+        start_pos = match.end()
+    prev_end = start_pos
+    for match in _HTML_REGEXP.finditer(text, start_pos):
+        start = match.start()
+        end = match.end()
+
+        if start > prev_end:
+            yield HtmlDataFragment(prev_end, start, True)
+
+        if match.groups()[0] is not None:  # comment
+            yield HtmlDataFragment(start, end)
+        elif match.groups()[1] is not None:  # <script>...</script>
+            for e in _parse_script(match):
+                yield e
+        else:  # tag
+            yield _parse_tag(match)
+
+        prev_end = end
+    textlen = len(text)
+    if prev_end < textlen:
+        yield HtmlDataFragment(prev_end, textlen, True)
+
+
+def _parse_script(match):
+    """parse a <script>...</script> region matched by _HTML_REGEXP"""
+    open_text, content, close_text = match.groups()[1:4]
+
+    open_tag = _parse_tag(_HTML_REGEXP.match(open_text))
+    open_tag.start = match.start()
+    open_tag.end = match.start() + len(open_text)
+
+    close_tag = _parse_tag(_HTML_REGEXP.match(close_text))
+    close_tag.start = match.end() - len(close_text)
+    close_tag.end = match.end()
+
+    yield open_tag
+    if open_tag.end < close_tag.start:
+        start_pos = 0
+        for m in _COMMENT_REGEXP.finditer(content):
+            if m.start() > start_pos:
+                yield HtmlDataFragment(open_tag.end + start_pos, open_tag.end + m.start())
+
+            yield HtmlDataFragment(open_tag.end + m.start(), open_tag.end + m.end())
+            start_pos = m.end()
+        if open_tag.end + start_pos < close_tag.start:
+            yield HtmlDataFragment(open_tag.end + start_pos, close_tag.start)
+    yield close_tag
+
+
+def _parse_tag(match):
+    """
+    parse a tag matched by _HTML_REGEXP
+    """
+    data = match.groups()
+    closing, tag, attr_text = data[4:7]
+    # if tag is None then the match is a comment
+    if tag is not None:
+        unpaired = data[-1]
+        if closing:
+            tag_type = TagType.CLOSE
+        elif unpaired:
+            tag_type = TagType.UNPAIRED
+        else:
+            tag_type = TagType.OPEN
+        return HtmlTag(tag_type, tag.lower(), attr_text, match.start(), match.end())

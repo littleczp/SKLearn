@@ -3,9 +3,9 @@
 
 step|purpose|how
 ---|---|---
-1|Chooses the initial centroids, choose k|(1)**Random choice** with Cross-Validation(unrealized)<br>(2)K-Means++ 
+1|Chooses the initial centroids, choose k|(1)**Random choice** with Cross-Validation(unrealized, only once random)<br>(2)[gap-statistic](https://statweb.stanford.edu/~gwalther/gap)
 2|Turn k templates to feature vectors|(1)Each vector entry is the count of a given tag and class attribute<br>(2)The dimension of the vectors will change as new pages with new tags or class attributes arrive.
-3|Assign the remaining templates to its nearest centroid|Calculate each template Euclidean distances
+3|Assign the remaining templates to its nearest centroid|Calculate each template [Euclidean distances](https://en.wikipedia.org/wiki/Euclidean_distance#Squared_Euclidean_distance)
 4|Repeats until the centroids do not move significantly|The difference between the old and the new centroids are computed and the algorithm repeats these last two steps until this value is less than a threshold
 
 #### feature vectors

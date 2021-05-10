@@ -11,12 +11,12 @@ from Clustering.K_Means.HTML_CLUSTERING.kmeans import KMeans
 def run(templates):
     # turn template to feature vector
     pages = list(map(build_dom, templates))
-    n_clusters = len(pages)
+    k_clusters = len(pages)
     centers = list(map(vectorizer, pages))
     X = np.zeros((len(centers), vectorizer.dimension))
     for i, c in enumerate(centers):
         X[i, :len(c)] = c
-    return KMeans(n_clusters=n_clusters, centers=X, vectorizer=vectorizer)
+    return KMeans(k_clusters=k_clusters, centers=X, vectorizer=vectorizer)
 
 
 if __name__ == '__main__':
@@ -122,11 +122,15 @@ if __name__ == '__main__':
             body = f.read()
         return HtmlPage(body=body)
 
+
+    # step1: fit k
     clt = run(load_page(group[0]) for group in ALL)
+    # step2: calculate centroid
     for group in ALL:
         for name in group[1:11]:
             clt.add_page(load_page(name))
 
+    # step3: classify clusters
     for i, group in enumerate(ALL):
         for name in group:
             classify = clt.classify(load_page(name))

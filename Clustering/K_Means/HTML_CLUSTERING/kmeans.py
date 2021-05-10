@@ -12,43 +12,41 @@ def reshape_cols(X, n):
 
 
 class KMeans:
-    def __init__(self, n_clusters=8, batch_size=None,
+    def __init__(self, k_clusters=8, batch_size=None,
                  max_std_dev=5.0, min_cluster_points=30,
                  vectorizer=TagFrequency(), centers=None):
         """
         Parameters
         ----------
-        n_clusters : int
+        k_clusters : int
             Number of clusters to use for KMeans.
         batch_size : int
             Update clusters only when the batch reaches this size.
-            Default: batch_size = 10*n_clusters.
+            Default: batch_size = 10*k_clusters.
         max_std_dev : float
-            For outlier detection, do not cluster measures whose
-            distance exceeds 5 times the std dev of the cluster.
+            For outlier detection, do not cluster measures whose distance exceeds 5 times the std dev of the cluster.
             Set to None to disable outlier detection.
             This value can be updated at any point after object creation.
         min_cluster_points : int
-            Do not perform outlier detection on clusters that have less than
-            this amount of points.
+            Do not perform outlier detection on clusters that have less than this amount of points.
         vectorizer : callable
-            Takes an scrapely.htmlpage.HtmlPage and returns a numpy array.
-            Different pages can return different array sizes. If the vector
-            is missing values they are assumed to be zero.
+            Takes an object HtmlPage and returns a numpy array.
+            Different pages can return different array sizes.
+            If the vector is missing values they are assumed to be zero.
         """
         self.vectorizer = vectorizer
         self.dimension = vectorizer.dimension
 
         if batch_size is None:
-            self.batch_size = 10 * n_clusters
+            self.batch_size = 10 * k_clusters
         else:
             self.batch_size = batch_size
 
         self.batch = []
-        self.n_clusters = n_clusters if centers is None else centers.shape[0]
-        self.kmeans = MiniBatchKMeans(self.n_clusters, init=centers if centers is not None else 'k-means++')
+        self.k_clusters = k_clusters if centers is None else centers.shape[0]
+        self.kmeans = MiniBatchKMeans(self.k_clusters, init=centers if centers is not None else 'k-means++')
 
-        self._sum_sqr_dist = np.zeros((self.n_clusters,))
+        self._sum_sqr_dist = np.zeros((self.k_clusters,))
         self.max_std_dev = max_std_dev
         self.min_cluster_points = min_cluster_points
 
@@ -74,8 +72,7 @@ class KMeans:
         return np.sum((X - self.kmeans.cluster_centers_[y]) ** 2, axis=1)
 
     def _find_outliers(self, X, y=None):
-        """Return a boolean array of size X.shape[0] where a True entry means
-        that the point is an outlier"""
+        """Return a boolean array of size X.shape[0] where a True entry means that the point is an outlier"""
         if not self.is_fit:
             return np.zeros((X.shape[0],))
         if y is None:
