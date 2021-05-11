@@ -1,5 +1,7 @@
 # html clustering
-> by Lloyd’s algorithm & Mini Batch K-Means
+> Model: Mini Batch K-Means<br>
+> Theory: HTML Dom frequency<br>
+> Approaches: Centroid Euclidean Distances
 
 step|purpose|how
 ---|---|---
