@@ -8,6 +8,8 @@ from Clustering.K_Means.HTML_CLUSTERING.utils import build_dom
 from Clustering.K_Means.HTML_CLUSTERING.utils.html import HtmlPage
 from Clustering.K_Means.HTML_CLUSTERING.kmeans import KMeans
 
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 
 def run(templates):
     # turn template to feature vector
@@ -17,11 +19,12 @@ def run(templates):
     X = np.zeros((len(centers), vectorizer.dimension))
     for i, c in enumerate(centers):
         X[i, :len(c)] = c
-    return KMeans(k_clusters=k_clusters, centers=X, vectorizer=vectorizer)
+    return KMeans(k_clusters=k_clusters, centers=X,
+                  min_cluster_points=5, max_std_dev=3,  # find_outliers parameter
+                  vectorizer=vectorizer)
 
 
 if __name__ == '__main__':
-    warnings.simplefilter(action='ignore', category=FutureWarning)
     JOBS = [
         'Jobs - 1 - Stack Overflow.html',
         'Jobs - 2 - Stack Overflow.html',
