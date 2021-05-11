@@ -1,4 +1,5 @@
 import os
+import warnings
 
 import numpy as np
 
@@ -20,6 +21,7 @@ def run(templates):
 
 
 if __name__ == '__main__':
+    warnings.simplefilter(action='ignore', category=FutureWarning)
     JOBS = [
         'Jobs - 1 - Stack Overflow.html',
         'Jobs - 2 - Stack Overflow.html',
