@@ -44,7 +44,11 @@ class KMeans:
 
         self.batch = []
         self.k_clusters = k_clusters if centers is None else centers.shape[0]
-        self.kmeans = MiniBatchKMeans(self.k_clusters, init=centers if centers is not None else 'k-means++')
+        self.kmeans = MiniBatchKMeans(
+            self.k_clusters,
+            init=centers if centers is not None else 'k-means++',
+            n_init=1  # 需要根据初始化情况调整
+        )
 
         self._sum_sqr_dist = np.zeros((self.k_clusters,))
         self.max_std_dev = max_std_dev

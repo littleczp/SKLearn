@@ -1,8 +1,14 @@
 import os
 import random
+import sys
+import time
+
+import numpy as np
 
 from Clustering.K_Means.HTML_CLUSTERING.main import run
 from Clustering.K_Means.HTML_CLUSTERING.utils import HtmlPage
+
+np.seterr(divide='ignore', invalid='ignore')
 
 
 def get_test_data():
@@ -36,10 +42,16 @@ def test():
                 k.add(i)
                 return add(k)
         else:
-            print(k)
+            for i in k:
+                test_file = os.path.abspath(sys.argv[0]).replace("/test.py", "")
+                print("file://" + os.path.join(test_file, i[i.index("/") + 1:]))
 
     add(k)
 
 
 if __name__ == '__main__':
+    start = time.time()
     test()
+    end = time.time()
+
+    print(f"use time: {end - start}")
