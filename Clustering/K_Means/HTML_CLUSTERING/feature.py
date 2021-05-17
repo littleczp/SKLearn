@@ -23,7 +23,7 @@ class TagFrequency:
         vector = np.zeros((len(self.dictionary),))
         for index in to_index:
             vector[index] += 1
-        return vector/np.sum(vector)
+        return vector/np.sum(vector)  # np列/vector总数，计算权重
 
     def _is_non_closing_tag(self, dataframe):
         return self._is_tag(dataframe) and not self._is_closing(dataframe)

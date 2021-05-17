@@ -131,3 +131,6 @@ dmypy.json
 # local
 .idea/
 .DS_Store
+
+# test data
+download/

@@ -56,6 +56,10 @@ The new page would be mapped according to this table:
 | table, table2  | 4        | 1     |
 | **a**          | 5        | 1     |
 
+### How to use
+1. Place the templates in the test/download folder
+2. Run test.py (You can modify the **max_std_dev** in the run.py to Control the degree of differentiation)
+
 ### Reference
 1. [page_clustering](https://github.com/scrapinghub/page_clustering)
 2. [scrapely](https://github.com/scrapy/scrapely)
