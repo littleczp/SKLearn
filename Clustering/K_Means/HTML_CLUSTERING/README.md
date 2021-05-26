@@ -3,6 +3,21 @@
 > Theory: HTML Dom frequency<br>
 > Approaches: Centroid Euclidean Distances
 
+# Directory
+```
+data/           # main data_set
+test/           # test HTML_CLUSTERING
+utils/
+    __init__.py # build dom structure
+    html.py     # HTML Tag class
+
+./
+    __init__.py
+    feature.py  # calculate tag frequency
+    kmeans.py   # KMeans model
+    main.py     # build kmeans
+```
+
 step|purpose|how
 ---|---|---
 1|Chooses the initial centroids, choose k|(1)**Random choice** with Cross-Validation(unrealized, only once random)<br>(2)[gap-statistic](https://statweb.stanford.edu/~gwalther/gap)
@@ -57,7 +72,7 @@ The new page would be mapped according to this table:
 | **a**          | 5        | 1     |
 
 ### How to use
-1. Place the templates in the test/download folder
+1. Place the templates in the `test/download` folder
 2. Run test.py (You can modify the **max_std_dev** in the run.py to Control the degree of differentiation)
 
 ### Reference
