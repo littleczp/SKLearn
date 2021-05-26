@@ -1,19 +1,43 @@
 # spam
 > Model: Naive Bayes<br>
-> Theory: TF-IDF、Word Frequency<br>
-> Approaches: Bayes theorem、Laplace smoothing
+> Theory: TF-IDF、Laplace smoothing<br>
+> Approaches: Bayes theorem
 
+# Directory
+```
+data/                    # main data_set(from https://www.kaggle.com/veleon/ham-and-spam-dataset)
+test/                    # test Spam
+utils/
+    __init__.py          # build dom structure
+    pre_processor.py     # handle email header and body
+
+./
+    __init__.py
+    main.py              # build bayes model
+```
 
 step|purpose|how
 ---|---|---
-1|Text analytics|Extracting words other than stop words
+1|Text analytics|Extracting words stem other than stop words
 2|TF-IDF|calculate term frequency–inverse document frequency
+3|Generate bayes model|Split train set and test set, then fit it to model
 
 #### feature vectors
 ```
+1. extract html text: regex pattern + bs4.get_text()
 
+2. words stem(only english) and remove stop words
+    nltk.stem.SnowballStemmer("english")
+
+    >>> testing          # test
+    >>> tested           # test
+    >>> test             # test
+    >>> 测试              # 测试
+    >>> テスト            # テスト
+    >>> eb_well_testing  # eb_well_test
+
+3. 
 ```
-
 
 ### How to use
 1. Place the templates in the test/download folder
@@ -21,4 +45,7 @@ step|purpose|how
 
 ### Reference
 1. [naive bayes](https://scikit-learn.org/stable/modules/naive_bayes.html#multinomial-naive-bayes)
-2. [TF-IDF]()
+2. [kaggle spam classification](https://www.kaggle.com/benvozza/spam-classification)
+
+### Thanks for
+@gq.wu
