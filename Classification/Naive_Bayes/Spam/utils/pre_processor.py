@@ -1,13 +1,13 @@
 import re
 
-import nltk
 from bs4 import BeautifulSoup
+from nltk import stem
 from nltk.corpus import stopwords
 
 
 class TextProcessor:
     # nltk_stem: only for english
-    email_words_stem = nltk.stem.SnowballStemmer("english")
+    email_words_stem = stem.SnowballStemmer("english")
 
     def get_words_stem(self, email_body: str):
         """remove stop words & get words stem"""
