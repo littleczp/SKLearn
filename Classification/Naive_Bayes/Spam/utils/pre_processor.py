@@ -1,6 +1,8 @@
 import re
 
+import nltk
 from bs4 import BeautifulSoup
+from nltk.corpus import stopwords
 
 
 class EmailText:
@@ -51,6 +53,9 @@ class EmailText:
         (email_body_long_pattern, "eb_long_str"),
     )
 
+    # nltk_stem: only for english
+    email_words_stem = nltk.stem.SnowballStemmer("english")
+
     def __get_header(self, email_body):
         email_header = ""
 
@@ -79,11 +84,17 @@ class EmailText:
         bs4_soup = BeautifulSoup(email_body, features="html.parser")
         return bs4_soup.get_text()
 
+    def get_words_stem(self, email_body: str):
+        """remove stop words & get words stem"""
+        word_list = [word for word in email_body.split() if word.lower() not in stopwords.words('english')]
+        return " ".join(list(map(lambda x: self.email_words_stem.stem(x), word_list)))
+
     def get_email_body(self, email_body):
         email_header = self.__get_header(email_body)
         email_body = self.__get_body(email_body)
+        email_stem = self.get_words_stem(email_body)
 
-        email_body = email_header + email_body
+        email_body = email_header + email_stem
         for pattern, replace_text in self.email_body_sub:
             email_body = re.sub(pattern, replace_text, email_body)
 
