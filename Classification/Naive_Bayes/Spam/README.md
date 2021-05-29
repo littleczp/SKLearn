@@ -5,7 +5,7 @@
 
 # Directory
 ```
-data/                    # main data_set(from https://www.kaggle.com/veleon/ham-and-spam-dataset)
+data/                    # main data_set(from https://www.kaggle.com/benvozza/spam-classification)
 test/                    # test Spam
 utils/
     __init__.py          # build dom structure

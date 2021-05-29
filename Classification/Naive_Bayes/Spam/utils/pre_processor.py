@@ -1,8 +1,10 @@
 import re
+import ssl
 
 from bs4 import BeautifulSoup
-from nltk import stem
+from nltk import stem, download
 from nltk.corpus import stopwords
+
 
 
 class TextProcessor:
@@ -11,7 +13,19 @@ class TextProcessor:
 
     def get_words_stem(self, email_body: str):
         """remove stop words & get words stem"""
-        word_list = [word for word in email_body.split() if word.lower() not in stopwords.words('english')]
+        try:
+            stop_word = stopwords.words('english')
+        except LookupError:
+            try:
+                _create_unverified_https_context = ssl._create_unverified_context
+            except AttributeError:
+                pass
+            else:
+                ssl._create_default_https_context = _create_unverified_https_context
+            download("stopwords")
+            stop_word = stopwords.words('english')
+
+        word_list = [word for word in email_body.split() if word.lower() not in stop_word]
         return " ".join(list(map(lambda x: self.email_words_stem.stem(x), word_list)))
 
 
@@ -104,3 +118,6 @@ class EmailTextProcessor(TextProcessor):
             email_body = re.sub(pattern, replace_text, email_body)
 
         return email_body
+
+
+processor = EmailTextProcessor()
