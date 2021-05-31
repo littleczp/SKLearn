@@ -36,7 +36,9 @@ step|purpose|how
     >>> テスト            # テスト
     >>> eb_well_testing  # eb_well_test
 
-3. 
+3. calculate tf-idf(feature vectors): sklearn.feature_extraction.text.TfidfVectorizer
+
+4. fit feature vectors and labels to bayes model
 ```
 
 ### How to use
