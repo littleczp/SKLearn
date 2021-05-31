@@ -134,3 +134,5 @@ dmypy.json
 
 # test data
 download/
+invalid.csv
+legal.csv

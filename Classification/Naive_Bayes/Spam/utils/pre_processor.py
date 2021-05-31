@@ -6,7 +6,6 @@ from nltk import stem, download
 from nltk.corpus import stopwords
 
 
-
 class TextProcessor:
     # nltk_stem: only for english
     email_words_stem = stem.SnowballStemmer("english")
@@ -31,12 +30,12 @@ class TextProcessor:
 
 class EmailTextProcessor(TextProcessor):
     # email header
-    email_subject_pattern = re.compile(r"[\s\S]*<p>Subject:.<span.name='subject'>([\s\S]+?)</span></p>")
-    email_from_pattern = re.compile(r"[\s\S]*<p>Email From: <span name='email_from'>([\s\S]+?)</span></p>")
-    email_label_pattern = re.compile(r"[\s\S]*<p>Labels:<span name='label_ids'>([\s\S]+?)</span></p>")
+    email_subject_pattern = re.compile(r"(?i)<p>Subject:\s<span\sname=\"subject\">([^<]+)</span></p>")
+    email_from_pattern = re.compile(r"(?i)<p>Email From:\s<span\sname=\"email_from\">([^<]+)</span></p>")
+    email_label_pattern = re.compile(r"(?i)<p>Labels:<span name=\"label_ids\">([^<]+)</span></p>")
 
     # email body(server)
-    email_body_div_pattern = re.compile(r"^([\s\S]+?)<div.name='html_body'>")
+    email_body_div_pattern = re.compile(r"^([\s\S]+?)<div\sname=\"html_body\">")
     email_body_style_pattern = re.compile(r"<style[^>]*?>[\s\S]*?</style>")
 
     # email_body: 「#」number
@@ -80,19 +79,19 @@ class EmailTextProcessor(TextProcessor):
     def __get_header(self, email_body):
         email_header = ""
 
-        email_subject = self.email_subject_pattern.match(email_body)
+        email_subject = self.email_subject_pattern.search(email_body)
         if email_subject:
             email_header += email_subject.group(1)
 
-        email_from = self.email_from_pattern.match(email_body)
+        email_from = self.email_from_pattern.search(email_body)
         if email_from:
             email_from = email_from.group(1).replace(".", "_").replace("@", "_")
             # prefix email_from_: Make a distinction with「@email」 from email body
             email_header += f" ef_{email_from}"
 
-        email_label = self.email_label_pattern.match(email_body)
+        email_label = self.email_label_pattern.search(email_body)
         if email_label:
-            email_header += email_label.group(1)
+            email_header += f" {email_label.group(1)}"
 
         return email_header
 
@@ -107,15 +106,19 @@ class EmailTextProcessor(TextProcessor):
 
     def get_email_body(self, email_body: str, stem: bool = True):
         email_header = self.__get_header(email_body)
+        print("email_header:", email_header)
         email_body = self.__get_body(email_body)
+        print("email_body:", email_body)
 
         if stem:
             email_body = self.get_words_stem(email_body)
 
         email_body = f"{email_header} {email_body}"
+        print("merge:", email_body)
 
         for pattern, replace_text in self.email_body_sub:
             email_body = re.sub(pattern, replace_text, email_body)
+            print("email_body:", email_body)
 
         return email_body
 

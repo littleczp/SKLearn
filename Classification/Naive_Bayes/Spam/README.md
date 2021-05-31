@@ -42,8 +42,21 @@ step|purpose|how
 ```
 
 ### How to use
-1. Place the templates in the test/download folder
-2. Run test.py
+##### train from csv
+1. According to the origin format`(label, text,,,)`, fill `/data/spam.csv`
+2. Run `bayes.py`
+
+##### train from file directory
+1. Place the templates in the `test/download` folder, distinguish labels `test/download/Invalid` & `others`
+2. Run `test/test.py`
+```
+test/
+    download/
+        Invalid/
+            ...    # invalid emails
+        xxx/
+            ...    # legal emails
+```
 
 ### Reference
 1. [naive bayes](https://scikit-learn.org/stable/modules/naive_bayes.html#multinomial-naive-bayes)
