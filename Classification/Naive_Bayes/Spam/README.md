@@ -1,6 +1,6 @@
 # spam
-> Model: Naive Bayes<br>
-> Theory: TF-IDF、Laplace smoothing<br>
+> Model: Naive Bayes、SVC<br>
+> Theory: TF-IDF、Laplace smoothing(0.2)<br>
 > Approaches: Bayes theorem
 
 # Directory
@@ -26,7 +26,7 @@ step|purpose|how
 ```
 1. extract html text: regex pattern + bs4.get_text()
 
-2. words stem(only english) and remove stop words
+2. words stem(only english) and remove stop words  # Not required
     nltk.stem.SnowballStemmer("english")
 
     >>> testing          # test
@@ -38,7 +38,7 @@ step|purpose|how
 
 3. calculate tf-idf(feature vectors): sklearn.feature_extraction.text.TfidfVectorizer
 
-4. fit feature vectors and labels to bayes model
+4. fit feature vectors and labels to models(bayes, svc)
 ```
 
 ### How to use

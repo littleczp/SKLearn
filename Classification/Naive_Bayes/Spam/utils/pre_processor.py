@@ -59,6 +59,9 @@ class EmailTextProcessor(TextProcessor):
     # email_body: long string
     email_body_long_pattern = re.compile(r"\b(?![0-9]+\b)(?![a-zA-Z]+\b)[0-9A-Za-z]{32,}\b")
 
+    # email_body: multi space
+    email_body_multi_space = re.compile(r"[\w,.:]+(\s\s+)")
+
     email_body_sub = (
         (email_body_well_number_2_4_pattern, "eb_well_small_num"),
         (email_body_well_number_5_8_pattern, "eb_well_middle_num"),
@@ -74,6 +77,8 @@ class EmailTextProcessor(TextProcessor):
 
         (email_body_md5_pattern, "eb_md5"),
         (email_body_long_pattern, "eb_long_str"),
+
+        (email_body_multi_space, " ")
     )
 
     def __get_header(self, email_body):

@@ -38,7 +38,8 @@ def load_from_cache():
         invalid_dataframe = pandas.DataFrame(columns=["label", "text"])
         invalid_set = list(get_invalid_set())
         list(map(lambda x: turn_feature_vectors(x, invalid_dataframe, "invalid"), tqdm(invalid_set, desc="invalid")))
-        invalid_dataframe.to_csv(path_or_buf=invalid_path, index=False).encode('utf-8', 'replace').decode('utf-8')
+        with open(invalid_path, "w", encoding='utf-8_sig', errors='ignore', newline="") as path:
+            invalid_dataframe.to_csv(path_or_buf=path, index=False)
     else:
         invalid_dataframe = pandas.read_csv(invalid_path)
 
@@ -47,7 +48,8 @@ def load_from_cache():
         legal_dataframe = pandas.DataFrame(columns=["label", "text"])
         legal_set = list(get_legal_set())
         list(map(lambda x: turn_feature_vectors(x, legal_dataframe, "legal"), tqdm(legal_set, desc="legal")))
-        legal_dataframe.to_csv(path_or_buf=legal_path, index=False).encode('utf-8', 'replace').decode('utf-8')
+        with open(legal_path, "w", encoding='utf-8_sig', errors='ignore', newline="") as path:
+            legal_dataframe.to_csv(path_or_buf=path, index=False)
     else:
         legal_dataframe = pandas.read_csv(legal_path)
 
