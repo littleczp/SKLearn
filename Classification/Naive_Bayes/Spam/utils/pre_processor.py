@@ -106,19 +106,15 @@ class EmailTextProcessor(TextProcessor):
 
     def get_email_body(self, email_body: str, stem: bool = True):
         email_header = self.__get_header(email_body)
-        print("email_header:", email_header)
         email_body = self.__get_body(email_body)
-        print("email_body:", email_body)
 
-        if stem:
-            email_body = self.get_words_stem(email_body)
+        # if stem:
+        #     email_body = self.get_words_stem(email_body)
 
         email_body = f"{email_header} {email_body}"
-        print("merge:", email_body)
 
         for pattern, replace_text in self.email_body_sub:
             email_body = re.sub(pattern, replace_text, email_body)
-            print("email_body:", email_body)
 
         return email_body
 

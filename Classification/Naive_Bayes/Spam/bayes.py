@@ -22,13 +22,13 @@ class BayesModel:
         text = data["text"].apply(processor.get_words_stem)  # Accuracy: 0.9318018664752333
         # text = data["text"]  # Accuracy: 0.9260588657573582
 
-        features = self.__td_idf(text)
+        features = self.__tf_idf(text)
         X_train, X_test, y_train, y_test = train_test_split(features, data['label'], test_size=0.25, random_state=33)
         model = self.__train(X_train, y_train)
 
         print("Accuracy:", model.score(X_test, y_test))
 
-    def __td_idf(self, text):
+    def __tf_idf(self, text):
         return self.vectorizer.fit_transform(text)
 
     def __train(self, x_train, y_train):

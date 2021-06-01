@@ -11,13 +11,14 @@ from Classification.Naive_Bayes.Spam.utils.pre_processor import processor
 def get_invalid_set():
     for root, dirs, files in os.walk(os.path.join(os.getcwd(), "download/Invalid")):
         for file in files:
-            yield f"{root}/{file}"
+            if file.endswith(".html") or file.endswith(".gz"):
+                yield f"{root}/{file}"
 
 
 def get_legal_set():
     for root, dirs, files in os.walk(os.path.join(os.getcwd(), "download/")):
         for file in files:
-            if not root.endswith("Invalid"):
+            if not root.endswith("Invalid") and (file.endswith(".html") or file.endswith(".gz")):
                 yield f"{root}/{file}"
 
 
@@ -36,8 +37,7 @@ def load_from_cache():
     if not os.path.exists(invalid_path):
         invalid_dataframe = pandas.DataFrame(columns=["label", "text"])
         invalid_set = list(get_invalid_set())
-        print(invalid_set[0])
-        list(map(lambda x: turn_feature_vectors(x, invalid_dataframe, "invalid"), tqdm(invalid_set[:1], desc="invalid")))
+        list(map(lambda x: turn_feature_vectors(x, invalid_dataframe, "invalid"), tqdm(invalid_set, desc="invalid")))
         invalid_dataframe.to_csv(path_or_buf=invalid_path, index=False).encode('utf-8', 'replace').decode('utf-8')
     else:
         invalid_dataframe = pandas.read_csv(invalid_path)
@@ -45,8 +45,8 @@ def load_from_cache():
     legal_path = os.path.join(os.getcwd(), "../data/legal.csv")
     if not os.path.exists(legal_path):
         legal_dataframe = pandas.DataFrame(columns=["label", "text"])
-        legal_set = list(get_invalid_set())[0]
-        list(map(lambda x: turn_feature_vectors(x, legal_dataframe, "legal"), tqdm(legal_set[:1], desc="legal")))
+        legal_set = list(get_legal_set())
+        list(map(lambda x: turn_feature_vectors(x, legal_dataframe, "legal"), tqdm(legal_set, desc="legal")))
         legal_dataframe.to_csv(path_or_buf=legal_path, index=False).encode('utf-8', 'replace').decode('utf-8')
     else:
         legal_dataframe = pandas.read_csv(legal_path)
