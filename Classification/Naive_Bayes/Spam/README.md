@@ -43,7 +43,7 @@ step|purpose|how
 
 ### How to use
 ##### train from csv
-1. According to the origin format`(label, text,,,)`, fill `/data/spam.csv`
+1. According to the origin format`(label, text)`, fill `/data/spam.csv`
 2. Run `bayes.py`
 
 ##### train from file directory

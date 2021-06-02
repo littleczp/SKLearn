@@ -13,12 +13,16 @@ from Classification.Naive_Bayes.Spam.utils.pre_processor import processor
 
 class BayesModel:
     def __init__(self):
+        self.model = None
         self.vectorizer = TfidfVectorizer(token_pattern=r"(?u)\b\w\w{1,30}\b")
 
-    def predict(self):
-        ...
+    def predict_text(self, text):
+        text = pandas.Series(text)
+        tf_idf = self.vectorizer.transform(text)
+        return self.model.predict(tf_idf)
 
-    def train_from_csv(self, path="data/spam.csv"):
+    def train_from_csv(self, path):
+        print("*" * 15, "generate model", "*" * 15)
         file = os.path.join(os.getcwd(), path)
         data = pandas.read_csv(file)
 
@@ -26,13 +30,14 @@ class BayesModel:
 
         train_time = time.time()
         print("train start")
-        model = self.__train(X_train, y_train)
+        self.model = self.__train(X_train, y_train)
         print("train use: ", time.time() - train_time)
 
-        print("Accuracy:", model.score(X_test, y_test))
+        print("Accuracy:", self.model.score(X_test, y_test))
 
-        y_predict = model.predict(X_test)
+        y_predict = self.model.predict(X_test)
         print("DataFrame:", classification_report(y_test, y_predict))
+        return self
 
     def __pre_process(self, data):
         t1 = time.time()
@@ -65,7 +70,7 @@ class BayesModel:
             weighted avg  0.95      0.94      0.94     10337
         """
 
-        # model = MultinomialNB(alpha=0.1)
+        model = MultinomialNB(alpha=0.1)
         """
         Accuracy: 0.9666247460578504
         DataFrame:    precision    recall  f1-score   support
@@ -73,7 +78,7 @@ class BayesModel:
             invalid       0.97      0.96      0.97      5043
             legal         0.96      0.97      0.97      5294
 
-            accuracy                         0.97     10337
+            accuracy                          0.97     10337
             macro avg     0.97      0.97      0.97     10337
             weighted avg  0.97      0.97      0.97     10337
         """
@@ -90,7 +95,7 @@ class BayesModel:
             weighted avg    0.99      0.99      0.99     10337
         """
 
-        model = SVC(kernel='sigmoid', gamma=1.0, verbose=5)
+        # model = SVC(kernel='sigmoid', gamma=1.0, verbose=5)
         """
         Accuracy: 0.9891651349521138
         DataFrame:      precision    recall  f1-score   support
@@ -107,5 +112,5 @@ class BayesModel:
 
 
 if __name__ == '__main__':
-    model = BayesModel()
-    model.train_from_csv()
+    bayes_model = BayesModel()
+    bayes_model.train_from_csv("data/spam.csv")

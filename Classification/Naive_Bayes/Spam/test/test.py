@@ -1,11 +1,18 @@
 import os
 import tempfile
 
+import joblib
 import pandas
 from tqdm import tqdm
 
 from Classification.Naive_Bayes.Spam.bayes import BayesModel
 from Classification.Naive_Bayes.Spam.utils.pre_processor import processor
+
+
+def model_from_cache():
+    model_path = os.path.join(os.getcwd(), "../data/filter.model")
+    if os.path.exists(model_path):
+        return joblib.load(model_path)
 
 
 def get_invalid_set():
@@ -32,7 +39,7 @@ def turn_feature_vectors(file_path: str, dataframe: pandas.DataFrame, label: str
         print(err)
 
 
-def load_from_cache():
+def training_set_from_cache():
     invalid_path = os.path.join(os.getcwd(), "../data/invalid.csv")
     if not os.path.exists(invalid_path):
         invalid_dataframe = pandas.DataFrame(columns=["label", "text"])
@@ -58,11 +65,20 @@ def load_from_cache():
 
 
 if __name__ == '__main__':
-    # 使用 data/invalid.csv 以及 data/legal.csv 作为缓存，如果需要重新生成模型，请删除这些文件
-    # use `data/invalid.csv` and `data/legal.csv` as cache, if need to regenerate the model, please delete this file
-    data = load_from_cache()
+    # 判断是否存在已训练好的模型，`data/filter.model`, 如果需要重新生成, 请删除这个文件
+    # model will load from `data/filter.model`, if need to regenerate model, please delete the file
+    model = model_from_cache()
+    if not model:
+        # 生成模型将使用 `data/invalid.csv` 以及 `data/legal.csv` 作为训练集，如果需要重新生成训练集，请删除这些文件
+        # generate model will use `data/invalid.csv` and `data/legal.csv` as training set
+        # if need to regenerate the training set, please delete the files
+        data = training_set_from_cache()
 
-    model = BayesModel()
-    with tempfile.NamedTemporaryFile() as temp:
-        data.to_csv(temp.name)
-        model.train_from_csv(temp.name)
+        with tempfile.NamedTemporaryFile() as temp:
+            data.to_csv(temp.name)
+            model = BayesModel().train_from_csv(temp.name)
+            joblib.dump(model, os.path.join(os.getcwd(), "../data/filter.model"))
+
+    predict_text = "Test text"
+    predict = model.predict_text(predict_text)
+    print(predict)

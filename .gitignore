@@ -137,3 +137,4 @@ download/
 invalid.csv
 legal.csv
 local.py
+*.model
