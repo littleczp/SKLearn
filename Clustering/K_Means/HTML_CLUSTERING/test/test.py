@@ -66,7 +66,7 @@ def test():
     for i in err:
         print("error file_path file://" + i)
 
-    pprint({v: k for k, v in sorted(res.items(), key=lambda x: -x[1])})
+    pprint({v: k for k, v in sorted(res.items(), key=lambda x: -x[1])}, sort_dicts=False)
 
 
 if __name__ == '__main__':
