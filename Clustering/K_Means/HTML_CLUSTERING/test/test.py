@@ -2,8 +2,11 @@ import os
 import random
 import sys
 import time
+from collections import defaultdict
+from pprint import pprint
 
 import numpy as np
+from tqdm import tqdm
 
 from Clustering.K_Means.HTML_CLUSTERING.main import run
 from Clustering.K_Means.HTML_CLUSTERING.utils import HtmlPage
@@ -25,28 +28,45 @@ def load_page(file_path):
 
 def test():
     test_templates = list(get_test_data())
-    print("templates count:", len(test_templates))
+    cur, err = list(), set()
+    cache = defaultdict(lambda: 0)
+    queue = [random.choice(test_templates)]
+    while queue:
+        cache = defaultdict(lambda: 0)
+        cur.append(queue.pop(0))
 
-    k = {random.choice(test_templates)}
+        _clt = run(load_page(i) for i in cur)
 
-    def add(k_clusters):
-        _clt = run(load_page(t) for t in k_clusters)
-        print(k_clusters)
-
-        for i in test_templates[1:15 * len(k)]:
+        test_range = len(test_templates) // 3 * len(cur)
+        for i in test_templates[1: test_range]:
             _clt.add_page(load_page(i))
 
-        for i in test_templates[:]:
-            classify = _clt.classify(load_page(i))
-            if classify == -1:
-                k.add(i)
-                return add(k)
-        else:
-            for i in k:
-                test_file = os.path.abspath(sys.argv[0]).replace("/test.py", "")
-                print("file://" + os.path.join(test_file, i[i.index("/") + 1:]))
+        for i in tqdm(test_templates):
+            try:
+                classify = _clt.classify(load_page(i))
+            except Exception as e:
+                print(e)
+                err.add(os.path.join(os.path.abspath(sys.argv[0]).replace("/test.py", ""), i[i.index("/") + 1:]))
+                continue
 
-    add(k)
+            if classify == -1:
+                queue.append(i)
+                break
+
+            cache[classify] += 1
+        else:
+            break
+
+    res = dict()
+    for i, n in enumerate(cur):
+        test_file = os.path.join(os.path.abspath(sys.argv[0]).replace("/test.py", ""), n[n.index("/") + 1:])
+        res["file://" + test_file] = cache[i]
+
+    print("***" * 15, "\n")
+    for i in err:
+        print("error file_path file://" + i)
+
+    pprint({v: k for k, v in sorted(res.items(), key=lambda x: -x[1])})
 
 
 if __name__ == '__main__':
