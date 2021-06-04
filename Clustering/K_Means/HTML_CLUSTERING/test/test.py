@@ -38,7 +38,7 @@ def test():
         _clt = run(load_page(i) for i in cur)
 
         test_range = len(test_templates) // 3 * len(cur)
-        for i in test_templates[1: test_range]:
+        for i in test_templates[: test_range]:
             _clt.add_page(load_page(i))
 
         for i in tqdm(test_templates):
